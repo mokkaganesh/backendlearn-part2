@@ -32,10 +32,15 @@ const registerUser = asyncHandler(async (req, res) => {
 
     //req.files from multer(middileware gives some fileds extra -> {kyon we add middleware in between  user.routes.js}) like req.body from express
     const avatarLocalPath = req.files?.avatar[0]?.path;
-    const coverImageLocalPath = req.files?.coverImage[0]?.path;
+    // const coverImageLocalPath = req.files?.coverImage[0]?.path;
 
     if(!avatarLocalPath ){
         throw new ApiError(400, "avatar image is required");
+    }
+    
+    let coverImageLocalPath;
+    if(req.files && Array.isArray(req.files.coverImage)&& req.files.coverImage.length > 0){
+        coverImageLocalPath = req.files?.coverImage[0]?.path;
     }
     
     //upload images to cloudinary
@@ -46,6 +51,8 @@ const registerUser = asyncHandler(async (req, res) => {
     if(!avatar){
         throw new ApiError(500, "Error in uploading images");
     }
+
+
 
 
     const user = await User.create({
