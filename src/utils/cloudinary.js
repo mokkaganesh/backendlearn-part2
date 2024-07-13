@@ -24,6 +24,8 @@ const uploadOnCloudinary = async (localFilePath) => {
         });
         //file has beeb uploaded to cloudinary
         console.log("file is uploaded to cloudinary ",response.url);
+        //unlink file from local storage
+        fs.unlinkSync(localFilePath);
         return response;
 
     } catch (error) {
