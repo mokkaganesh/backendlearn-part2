@@ -40,8 +40,10 @@ const registerUser = asyncHandler(async (req, res) => {
         throw new ApiError(400, "enter required fields");
     }
 
-    const existedUser  = User.findOne({$or: [{username: username}, {email: email}]})
+    const existedUser = await User.findOne({ $or: [{ username }, { email }] });
+    console.log(existedUser)
     if(existedUser){
+        console.log(existedUser + "lndlknfsklnf");
         throw new ApiError(409, "User already exists");
     }
 
@@ -98,9 +100,10 @@ const loginUser = asyncHandler( async (req,res) =>{
     //enter password check
     //access and refresh token 
     //send cookie
-    const {email , username , password} =req.body;
+    const {email , username , password} = req.body;
+    console.log(email + "fdwefwexfe" + username +" "+password);
 
-    if(!username || !email){
+    if(!username && !email){
         throw new ApiError(400,"username or email  required")
     }
 
@@ -108,7 +111,7 @@ const loginUser = asyncHandler( async (req,res) =>{
     if(!user){
         throw new ApiError(404,"user does not exist");
     }
-
+//
     const isPasswordVaild = await user.checkPassword(password);
     if(!isPasswordVaild){
         throw new ApiError(401,"password incorrect");
