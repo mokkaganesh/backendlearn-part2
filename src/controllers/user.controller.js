@@ -44,7 +44,7 @@ const registerUser = asyncHandler(async (req, res) => {
     console.log(existedUser)
     if(existedUser){
         console.log(existedUser + "lndlknfsklnf");
-        throw new ApiError(409, "User already exists");
+        throw new ApiError("User already exists",409);
     }
 
     //req.files from multer(middileware gives some fileds extra -> {kyon we add middleware in between  user.routes.js}) like req.body from express
@@ -66,7 +66,7 @@ const registerUser = asyncHandler(async (req, res) => {
     const coverImage = await uploadOnCloudinary(coverImageLocalPath);
 
     if(!avatar){
-        throw new ApiError(500, "Error in uploading images");
+        throw new ApiError( "Error in uploading images",500);
     }
 
 
@@ -101,7 +101,7 @@ const loginUser = asyncHandler( async (req,res) =>{
     //access and refresh token 
     //send cookie
     const {email , username , password} = req.body;
-    console.log(email + "fdwefwexfe" + username +" "+password);
+    // console.log(email + "fdwefwexfe" + username +" "+password);
 
     if(!username && !email){
         throw new ApiError(400,"username or email  required")
@@ -118,25 +118,32 @@ const loginUser = asyncHandler( async (req,res) =>{
     }
 
     const {accessToken,refreshToken} = await generateAccessAndRefreshTokens(user._id);
-
-    const loggedInUser = User.findById(user._id).select("-password -refreshToken")
     
+
+    const loggedInUser =await User.findById(user._id).select("-password -refreshToken")
+    
+    console.log(loggedInUser +  "   afdf");
     //by default anyone can modify -> make it true
     const options = {
         httpOnly:true ,//server se modify karna
-        secure :true
+        secure :"production" === process.env.NODE_ENV ? true : false,
     }
+
 
     return res
     .status(200)
-    .cookie("accessToken",accessToken,options)
-    .cookie("refreshToken",refreshToken,options)
-    .json(new ApiResponse(
-        200,
-        {
-            user :loggedInUser, accessToken,refreshToken
-        },"user logged In Successfully"
-    ));
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(
+        new ApiResponse(
+            200, 
+            {
+                user: loggedInUser, accessToken, refreshToken
+            },
+            "User logged In Successfully"
+        )
+    )
+
 });
 
 const logoutUser = asyncHandler(async (req,res)=>{
@@ -153,7 +160,9 @@ const logoutUser = asyncHandler(async (req,res)=>{
     await User.findByIdAndUpdate(
         userId,
         {
-            $set:{refreshToken: undefined}
+            $unset: {
+                refreshToken: 1 // this removes the field from document
+            }
         },
         {
             new: true
